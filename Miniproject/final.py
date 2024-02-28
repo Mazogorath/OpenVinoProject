@@ -92,14 +92,14 @@ if __name__ == "__main__":
                 winner_image = resize_image(player1)
                 winner_text = f"Player 1 Wins! (Value: {value1})"
                 cv2.putText(winner_image, text="Player1 win", org=(
-                    250, 330), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=3, 
+                    250, 330), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, 
                     color=(0, 255, 0), thickness=3)
 
             elif value2 > value1:
                 winner_image = resize_image(player2)
                 winner_text = f"Player 2 Wins! (Value: {value2})"
                 cv2.putText(winner_image, text="Player2 win", org=(
-                    250, 330), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=3, 
+                    250, 330), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, 
                     color=(0, 255, 0), thickness=3)
             else:
                 winner_image = resize_image(player1)
@@ -113,8 +113,10 @@ if __name__ == "__main__":
 
         key = cv2.waitKey(0)
         if key == ord('r'):
+            cv2.destroyAllWindows()
             continue
         elif key == ord('q'):
+            cv2.destroyAllWindows()
             break
 
 cv2.destroyAllWindows()
