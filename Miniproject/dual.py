@@ -79,6 +79,8 @@ def duals():
                 if idx in rps_gesture.keys():
                     org = (int(res.landmark[0].x * img.shape[1]),
                            int(res.landmark[0].y * img.shape[0]))
+                    cv2.putText(img, text="save enter q", org=(
+                        10, 40), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 0), thickness=2)
                     cv2.putText(img, text=rps_gesture[idx].upper(), org=(
                         org[0], org[1] + 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 255, 255), thickness=2)
 
@@ -86,6 +88,7 @@ def duals():
                         'rps': rps_gesture[idx],
                         'org': org
                     })
+                    print(rps_result)
 
                 mp_drawing.draw_landmarks(img, res, mp_hands.HAND_CONNECTIONS)
 
@@ -93,9 +96,10 @@ def duals():
                 #     count = 0
                 #     tmp = rps_result
                 #     count += 1
-                #     if count == 1:
-                #         continue
-                #     if count >= 10:
+                #     if count == 2:
+                #         save_dataset = [rps_gesture[result['rps']]
+                #                         for result in tmp]
+                #         print(save_dataset)
                 #         return tmp
 
                 # Who wins?
@@ -141,8 +145,11 @@ def duals():
         cv2.imshow('Game', img)
 
         if cv2.waitKey(1) == ord('q'):
-            save_dataset = tmp
-            print(save_dataset)
+            if rps_result:
+                tmp = rps_result
+                save_dataset = [
+                    key for key, value in rps_gesture.items() if value == tmp[0]['rps']]
+                cv2.destroyWindow("Game")
             break
 
-    return {'rps_result': tmp if tmp else []}
+    return {'rps_result': save_dataset if save_dataset else []}
