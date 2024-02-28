@@ -88,7 +88,7 @@ def duals():
                         'rps': rps_gesture[idx],
                         'org': org
                     })
-                    print(rps_result)
+                    # print(rps_result)
 
                 mp_drawing.draw_landmarks(img, res, mp_hands.HAND_CONNECTIONS)
 

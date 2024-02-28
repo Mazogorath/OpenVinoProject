@@ -109,7 +109,7 @@ if __name__ == "__main__":
                     color=(0, 255, 0), thickness=3)
 
             cv2.imshow("Winner", winner_image)
-            print(winner_text)
+            # print(winner_text)
 
         key = cv2.waitKey(0)
         if key == ord('r'):

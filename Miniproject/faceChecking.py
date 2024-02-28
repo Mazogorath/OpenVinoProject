@@ -29,7 +29,7 @@ for i in raw_list:
     if filename == '.jpg' or filename == '.jpeg' or filename == '.png':
         file_list.append(i)
         employees.append(os.path.splitext(i)[0])
-print(file_list)
+# print(file_list)
 
 ID: int = 4
 CAM_WIDTH: int = 640
@@ -235,34 +235,34 @@ def faceCheckings(target="CPU", model="facenet"):
                 for j in reference_embeddings:
                     klist.append(cosine_similarity(j, embeddings)[0][0])
                     i = max(klist)
-        print("klist = ", klist)
+        # print("klist = ", klist)
         cv2.imshow("Feed", disp_frame)
 
         # for i in range(0, len(klist)):
         #     print("klist[i] = ", klist[i])
-        for i in range(0, len(klist)):
-            print(employees[i])
+        # for i in range(0, len(klist)):
+        #     print(employees[i])
 
         for i in range(0, len(klist)):
             if klist[i] > 0.65:
                 if len(boxes) == 0:
                     continue
-                print("csi = ", i)
+                # print("csi = ", i)
                 pt1 = (boxes[0][0], boxes[0][1])
                 pt2 = (boxes[0][2], boxes[0][3])
-                print(pt1, pt2)
+                # print(pt1, pt2)
                 # print(boxes)
                 cv2.rectangle(disp_frame, pt1, pt2, color=(0, 255, 0))
-                cv2.putText(disp_frame, f"{employees[i]} : {max(klist):.2f}", org=(
+                cv2.putText(disp_frame, f"{employees[i]}", org=(
                     boxes[0][0] + 5, boxes[0][1] + 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=1, color=(0, 255, 0))
                 if klist[i] > 0.8:
-                        cimage = disp_frame[boxes[0][1]:boxes[0]
-                                            [3], boxes[0][0]:boxes[0][2]]
-                        cv2.imwrite("person1.jpg", cimage)
-                        time.sleep(1)
-                        cv2.destroyWindow("Feed")
-                        return cimage
-                        break
+                    cimage = disp_frame[boxes[0][1]:boxes[0]
+                                        [3], boxes[0][0]:boxes[0][2]]
+                    cv2.imwrite("person1.jpg", cimage)
+                    time.sleep(1)
+                    cv2.destroyWindow("Feed")
+                    return cimage
+                    break
         cv2.imshow("Feed", disp_frame)
 
         # Press 'q' to Quit
@@ -281,3 +281,4 @@ def faceCheckings(target="CPU", model="facenet"):
 
 #  if __name__ == "__faceChecking__":
 #      sys.exit(faceChecking() or 0)
+
