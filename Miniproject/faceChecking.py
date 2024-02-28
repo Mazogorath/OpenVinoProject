@@ -23,10 +23,12 @@ IMAGE_PATH: str = os.path.join(
 # 상기 폴더 내에 있는 이미지 파일을 읽어와 리스트로 만들기
 raw_list = os.listdir(IMAGE_PATH)
 file_list = []
+employees = []
 for i in raw_list:
     filename = os.path.splitext(i)[1]
     if filename == '.jpg' or filename == '.jpeg' or filename == '.png':
         file_list.append(i)
+        employees.append(os.path.splitext(i)[0])
 print(file_list)
 
 ID: int = 4
@@ -140,7 +142,7 @@ def faceCheckings(target="CPU", model="facenet"):
     count = -1
 
     for file in file_list:
-
+        
         count += 1
         # Read Reference Image and Apply CLAHE
         image = cv2.imread(os.path.join(
@@ -236,8 +238,13 @@ def faceCheckings(target="CPU", model="facenet"):
         print("klist = ", klist)
         cv2.imshow("Feed", disp_frame)
 
-        for i in klist:
-            if i > 0.5:
+        # for i in range(0, len(klist)):
+        #     print("klist[i] = ", klist[i])
+        for i in range(0, len(klist)):
+            print(employees[i])
+
+        for i in range(0, len(klist)):
+            if klist[i] > 0.65:
                 if len(boxes) == 0:
                     continue
                 print("csi = ", i)
@@ -246,17 +253,16 @@ def faceCheckings(target="CPU", model="facenet"):
                 print(pt1, pt2)
                 # print(boxes)
                 cv2.rectangle(disp_frame, pt1, pt2, color=(0, 255, 0))
-                cv2.putText(disp_frame, f"{i:.2f}", org=(
+                cv2.putText(disp_frame, f"{employees[i]} : {max(klist):.2f}", org=(
                     boxes[0][0] + 5, boxes[0][1] + 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=1, color=(0, 255, 0))
-            
-                # if i > 0.8:
-                #     cimage = disp_frame[boxes[0][1]:boxes[0]
-                #                         [3], boxes[0][0]:boxes[0][2]]
-                #     cv2.imwrite("person1.jpg", cimage)
-                #     time.sleep(1)
-                #     cv2.destroyWindow("Feed")
-                #     return cimage
-                #     break
+                if klist[i] > 0.8:
+                        cimage = disp_frame[boxes[0][1]:boxes[0]
+                                            [3], boxes[0][0]:boxes[0][2]]
+                        cv2.imwrite("person1.jpg", cimage)
+                        time.sleep(1)
+                        cv2.destroyWindow("Feed")
+                        return cimage
+                        break
         cv2.imshow("Feed", disp_frame)
 
         # Press 'q' to Quit
