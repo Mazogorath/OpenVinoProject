@@ -20,6 +20,15 @@ RECOG_MODEL_PATH_3: str = os.path.join(MODEL_BASE_PATH, "recog_model_3.xml")
 IMAGE_PATH: str = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), "images")
 
+# 상기 폴더 내에 있는 이미지 파일을 읽어와 리스트로 만들기
+raw_list = os.listdir(IMAGE_PATH)
+file_list = []
+for i in raw_list:
+    filename = os.path.splitext(i)[1]
+    if filename == '.jpg' or filename == '.jpeg' or filename == '.png':
+        file_list.append(i)
+print(file_list)
+
 ID: int = 4
 CAM_WIDTH: int = 640
 CAM_HEIGHT: int = 360
@@ -99,33 +108,10 @@ def detect_faces(
     return label_indexes, probs, boxes
 
 
-def show_images(
-    image_1: np.ndarray,
-    image_2: np.ndarray,
-    cmap_1: str = "gnuplot2",
-    cmap_2: str = "gnuplot2",
-    title_1: Union[str, None] = None,
-    title_2: Union[str, None] = None,
-    title: Union[str, None] = None,
-) -> None:
-    plt.figure()
-    plt.subplot(1, 2, 1)
-    plt.imshow(cv2.cvtColor(src=image_1, code=cv2.COLOR_BGR2RGB), cmap_1)
-    plt.axis("off")
-    if title_1:
-        plt.title(title_1)
-    plt.subplot(1, 2, 2)
-    plt.imshow(cv2.cvtColor(src=image_2, code=cv2.COLOR_BGR2RGB), cmap_2)
-    plt.axis("off")
-    if title_2:
-        plt.title(title_2)
-    if title:
-        plt.suptitle(title, fontsize=28)
-    plt.show()
+def faceCheckings(target="CPU", model="facenet"):
 
-
-def faceCheckings(file="image.jpg", target="CPU", model="facenet"):
-
+    # 함수가 아닌 프로그램에서 직접 인수를 받던 시절의 코드
+    # 현재는 함수에서 직접 받도록 설정됨
     # CLI Argument Parsing
     # parser = argparse.ArgumentParser()
     # parser.add_argument("--mode", "-m", type=str,
@@ -149,68 +135,52 @@ def faceCheckings(file="image.jpg", target="CPU", model="facenet"):
     # Adaptive Equalization Setup
     clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(5, 5))
 
-    # Read Reference Image and Apply CLAHE
-    image = cv2.imread(os.path.join(
-        IMAGE_PATH, file), cv2.IMREAD_COLOR)
-    # for i in range(3):
-    #     image[:, :, i] = clahe.apply(image[:, :, i])
-    # temp_image = image.copy()
-    # h, w, _ = image.shape
-    image = cv2.imread(os.path.join(
-        IMAGE_PATH, file), cv2.IMREAD_COLOR)
-    for i in range(3):
-        image[:, :, i] = clahe.apply(image[:, :, i])
-    temp_image = image.copy()
-    h, w, _ = image.shape
+    reference_embeddings = []
+    cs = []
+    count = -1
 
-    # image2 = cv2.imread(os.path.join(
-    #     IMAGE_PATH, args.filename2), cv2.IMREAD_COLOR)
-    # for i in range(3):
-    #     image2[:, :, i] = clahe.apply(image2[:, :, i])
-    # temp_image2 = image2.copy()
-    # h2, w2, _ = image2.shape
+    for file in file_list:
 
-    # Initialize Facial Detection Model
-    d_model, _, d_output_layer, (_, _, d_H, d_W) = setup(
-        target, DETECT_MODEL_PATH)
+        count += 1
+        # Read Reference Image and Apply CLAHE
+        image = cv2.imread(os.path.join(
+            IMAGE_PATH, file), cv2.IMREAD_COLOR)
+        for i in range(3):
+            image[:, :, i] = clahe.apply(image[:, :, i])
+        temp_image = image.copy()
+        h, w, _ = image.shape
 
-    # Initialize Facial Recognition Model (Facial Embeddings)
-    if model == "arcface":
-        r_model, _, r_output_layer, (_, _, r_H, r_W) = setup(
-            target, RECOG_MODEL_PATH_1)
-    elif model == "facenet":
-        r_model, _, r_output_layer, (_, r_H, r_W, _) = setup(
-            target, RECOG_MODEL_PATH_2)
-    elif model == "sphereface":
-        r_model, _, r_output_layer, (_, _, r_H, r_W) = setup(
-            target, RECOG_MODEL_PATH_3)
+        # Initialize Facial Detection Model
+        d_model, _, d_output_layer, (_, _, d_H, d_W) = setup(
+            target, DETECT_MODEL_PATH)
 
-    # Preprocess Image and Detect Faces
-    image = preprocess(image, d_W, d_H)
-    _, _, boxes = detect_faces(d_model, d_output_layer, image, w, h)
+        # Initialize Facial Recognition Model (Facial Embeddings)
+        if model == "arcface":
+            r_model, _, r_output_layer, (_, _, r_H, r_W) = setup(
+                target, RECOG_MODEL_PATH_1)
+        elif model == "facenet":
+            r_model, _, r_output_layer, (_, r_H, r_W, _) = setup(
+                target, RECOG_MODEL_PATH_2)
+        elif model == "sphereface":
+            r_model, _, r_output_layer, (_, _, r_H, r_W) = setup(
+                target, RECOG_MODEL_PATH_3)
 
-    # image2 = preprocess(image2, d_W, d_H)
-    # _, _, boxes2 = detect_faces(d_model, d_output_layer, image2, w2, h2)
+        # Preprocess Image and Detect Faces
+        image = preprocess(image, d_W, d_H)
+        _, _, boxes = detect_faces(d_model, d_output_layer, image, w, h)
 
-    # Preprocess face ROI Image and get embeddings
-    face_image = preprocess(
-        temp_image[boxes[0][1]:boxes[0][3], boxes[0][0]:boxes[0][2], :], r_W, r_H, model)
-    reference_embeddings = r_model(inputs=[face_image])[r_output_layer]
+        # Preprocess face ROI Image and get embeddings
+        face_image = preprocess(
+            temp_image[boxes[0][1]:boxes[0][3], boxes[0][0]:boxes[0][2], :], r_W, r_H, model)
+        reference_embeddings.append(
+            r_model(inputs=[face_image])[r_output_layer])
 
-    # face_image2 = preprocess(
-    #     temp_image2[boxes2[0][1]:boxes2[0][3], boxes2[0][0]:boxes2[0][2], :], r_W, r_H, args.model)
-    # reference_embeddings2 = r_model(inputs=[face_image2])[r_output_layer]
+        del temp_image, boxes, image
 
-    del temp_image, boxes, image
+        # embeddings = r_model(inputs=[face_image])[r_output_layer]
 
-    # del temp_image2, boxes2, image2
-    # Compute Cosine Similarity between embeddings
-
-    embeddings = r_model(inputs=[face_image])[r_output_layer]
-    # embeddings2 = r_model(inputs=[face_image2])[r_output_layer]
-
-    cs = cosine_similarity(reference_embeddings, embeddings)[0][0]
-    # cs2 = cosine_similarity(reference_embeddings2, embeddings2)[0][0]
+        cs.append(cosine_similarity(
+            reference_embeddings[count], reference_embeddings[count])[0][0])
 
     # Initialize Video Capture Object
     if platform.system() != "Windows":
@@ -231,7 +201,6 @@ def faceCheckings(file="image.jpg", target="CPU", model="facenet"):
 
         # Make a copy for processing purposes
         temp_frame = frame.copy()
-        # temp_frame2 = frame.copy()
 
         # Make a copy for display purposes
         disp_frame = frame.copy()
@@ -240,51 +209,16 @@ def faceCheckings(file="image.jpg", target="CPU", model="facenet"):
         for i in range(3):
             frame[:, :, i] = clahe.apply(frame[:, :, i])
             temp_frame[:, :, i] = clahe.apply(temp_frame[:, :, i])
-            # temp_frame2[:, :, i] = clahe.apply(temp_frame[:, :, i])
-
-            # # CLAHE Display Frame (Test Purposes)
-            # disp_frame[:, :, i] = clahe.apply(disp_frame[:, :, i])
-
-        # boxes = detect_faces(
-        #     d_model, d_output_layer, frame, CAM_WIDTH, CAM_HEIGHT)
-        # print(boxes)
-        # _, _, box = boxes
-        # if not box: continue
-
-        # for _, _, box in boxes:
-        #     if len(box) != 0:
-        #         face_frame = temp_frame[box[1]:box[3], box[0]:box[2], :]
-        #     else:
-        #         face_frame = temp_frame
-        #     if face_frame.shape[0] >= 16 and face_frame.shape[1] >= 16:
-        #         face_frame = preprocess(face_frame, r_W, r_H, args.model)
-        #         embeddings = r_model(inputs=[face_frame])[r_output_layer]
-        #         cs = cosine_similarity(reference_embeddings, embeddings)[0][0]
-        #     if cs > 0.7:
-        #         pt1 = (box[0], box[1])
-        #         pt2 = (box[2], box[3])
-        #         cv2.rectangle(disp_frame, pt1, pt2, color=(0, 255, 0))
-        #         cv2.putText(disp_frame, f"{cs:.2f}", org=(
-        #             box[0] + 5, box[1] + 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=1, color=(0, 255, 0))
 
         # Preprocess Frame and Detect Faces
         frame = preprocess(frame, d_W, d_H)
         _, _, boxes = detect_faces(
             d_model, d_output_layer, frame, CAM_WIDTH, CAM_HEIGHT)
-        # _, _, boxes2 = detect_faces(
-        #     d_model, d_output_layer, frame, CAM_WIDTH, CAM_HEIGHT)
-
         # Preprocess face ROI Frame and get embeddings
         if len(boxes) != 0:
             face_frame = temp_frame[boxes[0][1]:boxes[0][3], boxes[0][0]:boxes[0][2], :]
         else:
             face_frame = temp_frame
-
-        # if len(boxes2) != 0:
-        #     face_frame2 = temp_frame2[boxes2[0][1]
-        #         :boxes2[0][3], boxes2[0][0]:boxes2[0][2], :]
-        # else:
-        #     face_frame2 = temp_frame2
 
         # If condition is met, compute Cosine Similarity between embeddings
         if face_frame.shape[0] < 16 or face_frame.shape[1] < 16:
@@ -294,45 +228,42 @@ def faceCheckings(file="image.jpg", target="CPU", model="facenet"):
         if face_frame.shape[0] >= 16 and face_frame.shape[1] >= 16:
             face_frame = preprocess(face_frame, r_W, r_H, model)
             embeddings = r_model(inputs=[face_frame])[r_output_layer]
-            cs = cosine_similarity(reference_embeddings, embeddings)[0][0]
-        # if face_frame2.shape[0] >= 16 and face_frame2.shape[1] >= 16:
-        #     face_frame2 = preprocess(face_frame2, r_W, r_H, args.model)
-        #     embeddings2 = r_model(inputs=[face_frame2])[r_output_layer]
-        #     cs2 = cosine_similarity(
-        #         reference_embeddings2, embeddings2)[0][0]
+            for i in cs:
+                klist = []
+                for j in reference_embeddings:
+                    klist.append(cosine_similarity(j, embeddings)[0][0])
+                    i = max(klist)
+        print("klist = ", klist)
+        cv2.imshow("Feed", disp_frame)
 
-        if cs > 0.5:
-            pt1 = (boxes[0][0], boxes[0][1])
-            pt2 = (boxes[0][2], boxes[0][3])
-            cv2.rectangle(disp_frame, pt1, pt2, color=(0, 255, 0))
-            cv2.putText(disp_frame, f"{cs:.2f}", org=(
-                boxes[0][0] + 5, boxes[0][1] + 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=1, color=(0, 255, 0))
-            if cs > 0.7:
-                cimage = disp_frame[boxes[0][1]:boxes[0]
-                                    [3], boxes[0][0]:boxes[0][2]]
-                cv2.imwrite("person1.jpg", cimage)
-                time.sleep(2)
-                cv2.destroyWindow("Feed")
-                return cimage
-                break
-        # if cs2 > 0.5:
-        #     pt3 = (boxes2[0][0], boxes2[0][1])
-        #     pt4 = (boxes2[0][2], boxes2[0][3])
-        #     cv2.rectangle(disp_frame, pt3, pt4, color=(0, 255, 0))
-        #     cv2.putText(disp_frame, f"{cs2:.2f}", org=(
-        #         boxes2[0][0] + 5, boxes2[0][1] + 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=1, color=(0, 255, 0))
-        #     if cs2 > 0.7:
-        #         cimage = disp_frame[boxes2[0][1]:boxes2[0][3], boxes2[0][0]:boxes2[0][2]]
-        #         cv2.imwrite("person2.jpg", cimage)
-        #         break
-        # Display the frame
+        for i in klist:
+            if i > 0.5:
+                if len(boxes) == 0:
+                    continue
+                print("csi = ", i)
+                pt1 = (boxes[0][0], boxes[0][1])
+                pt2 = (boxes[0][2], boxes[0][3])
+                print(pt1, pt2)
+                # print(boxes)
+                cv2.rectangle(disp_frame, pt1, pt2, color=(0, 255, 0))
+                cv2.putText(disp_frame, f"{i:.2f}", org=(
+                    boxes[0][0] + 5, boxes[0][1] + 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=1, color=(0, 255, 0))
+            
+                # if i > 0.8:
+                #     cimage = disp_frame[boxes[0][1]:boxes[0]
+                #                         [3], boxes[0][0]:boxes[0][2]]
+                #     cv2.imwrite("person1.jpg", cimage)
+                #     time.sleep(1)
+                #     cv2.destroyWindow("Feed")
+                #     return cimage
+                #     break
         cv2.imshow("Feed", disp_frame)
 
         # Press 'q' to Quit
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
         if cv2.waitKey(1) & 0xFF == ord('i') or cv2.waitKey(1) & 0xFF == ord('I'):
-            cv2.imwrite("image.jpg", disp_frame)
+            cv2.imwrite("./images/image20.jpg", disp_frame)
             cap.release()
 
     # Release the Video Capture Object
