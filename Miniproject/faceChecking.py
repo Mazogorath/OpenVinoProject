@@ -4,6 +4,7 @@ import platform
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 from typing import Union
 from openvino.runtime import Core
@@ -300,16 +301,18 @@ def faceCheckings(file="image.jpg", target="CPU", model="facenet"):
         #     cs2 = cosine_similarity(
         #         reference_embeddings2, embeddings2)[0][0]
 
-        if cs > 0.7:
+        if cs > 0.5:
             pt1 = (boxes[0][0], boxes[0][1])
             pt2 = (boxes[0][2], boxes[0][3])
             cv2.rectangle(disp_frame, pt1, pt2, color=(0, 255, 0))
             cv2.putText(disp_frame, f"{cs:.2f}", org=(
                 boxes[0][0] + 5, boxes[0][1] + 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=1, color=(0, 255, 0))
-            if cs > 0.8:
+            if cs > 0.7:
                 cimage = disp_frame[boxes[0][1]:boxes[0]
                                     [3], boxes[0][0]:boxes[0][2]]
                 cv2.imwrite("person1.jpg", cimage)
+                time.sleep(2)
+                cv2.destroyWindow("Feed")
                 return cimage
                 break
         # if cs2 > 0.5:
