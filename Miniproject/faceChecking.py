@@ -150,14 +150,17 @@ def faceCheckings(file="image.jpg", target="CPU", model="facenet"):
 
     # Read Reference Image and Apply CLAHE
     image = cv2.imread(os.path.join(
-        IMAGE_PATH, file), cv2.IMREAD_GRAYSCALE)
+        IMAGE_PATH, file), cv2.IMREAD_COLOR)
     # for i in range(3):
     #     image[:, :, i] = clahe.apply(image[:, :, i])
     # temp_image = image.copy()
     # h, w, _ = image.shape
-    image[:] = clahe.apply(image[:])
+    image = cv2.imread(os.path.join(
+        IMAGE_PATH, file), cv2.IMREAD_COLOR)
+    for i in range(3):
+        image[:, :, i] = clahe.apply(image[:, :, i])
     temp_image = image.copy()
-    h, w = image.shape
+    h, w, _ = image.shape
 
     # image2 = cv2.imread(os.path.join(
     #     IMAGE_PATH, args.filename2), cv2.IMREAD_COLOR)
