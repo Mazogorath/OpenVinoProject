@@ -25,7 +25,7 @@ if __name__ == "__main__":
         value2 = []
 
         # Player1
-        player1 = faceCheckings(file="image2.jpg")
+        player1 = faceCheckings()
         result = duals()
         if result and 'rps_result' in result:
             rps_result_list = result['rps_result']
@@ -39,7 +39,7 @@ if __name__ == "__main__":
             value1 = 0
 
         # Player2
-        player2 = faceCheckings(file="image3.jpg")
+        player2 = faceCheckings()
         result = duals()
         if result and 'rps_result' in result:
             rps_result_list = result['rps_result']
